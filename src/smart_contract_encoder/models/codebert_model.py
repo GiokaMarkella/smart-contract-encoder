@@ -41,10 +41,10 @@ class CodeBERTEncoder(BaseModel):
             all_embeddings.append(embeddings.cpu().numpy())
         return np.vstack(all_embeddings)
 
-    def encode_queries(self, queries, **kwargs):
+    def encode_query(self, queries, **kwargs):
         return self.encode(queries, **kwargs)
 
-    def encode_corpus(self, corpus, **kwargs):
+    def encode_document(self, corpus, **kwargs):
         if isinstance(corpus, list) and len(corpus) > 0 and isinstance(corpus[0], dict):
             texts = [d.get("text", "") for d in corpus]
         else:
