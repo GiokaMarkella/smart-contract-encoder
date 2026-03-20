@@ -23,6 +23,7 @@ def main():
     create_query_dataset("test", "ngram", "untrained", "opcode")
     create_query_dataset("test", "smartembed", "untrained", "func_code")
     create_query_dataset("test", "codebert", "untrained", "func_code")
+    create_query_dataset("test", "coderankeembed", "untrained", "func_code")
     evaluate_nicad_results()
     # create evaluation graphs
     eval_graphs()

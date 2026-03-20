@@ -2,6 +2,7 @@ from smart_contract_encoder.models.sentence_encoder import SentenceEncoder
 from smart_contract_encoder.models.ngram_model import NgramEncoder
 from smart_contract_encoder.models.smartembed_model import SmartEmbed
 from smart_contract_encoder.models.codebert_model import CodeBERTEncoder
+from smart_contract_encoder.models.coderankeembed_model import CodeRankEmbedEncoder
 from smart_contract_encoder.load_data import *
 from smart_contract_encoder.utils import ENC_VALS, ENC_VERSION
 
@@ -15,6 +16,8 @@ def load_encoder(encoder, encoder_version, model_to_load=None):
         enc = SmartEmbed()
     elif encoder == "codebert":
         enc = CodeBERTEncoder()
+    elif encoder == "coderankeembed":
+        enc = CodeRankEmbedEncoder()
     return enc
 
 def _encode_field(field, df, enc):
