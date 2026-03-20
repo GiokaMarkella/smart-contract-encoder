@@ -22,6 +22,7 @@ def main():
     create_query_dataset("test", "sentence_encoder", "finetuned", "tac_code", "all-mpnet-base-v2/tac_code_translation_pairs_32_3000_50_50")
     create_query_dataset("test", "ngram", "untrained", "opcode")
     create_query_dataset("test", "smartembed", "untrained", "func_code")
+    create_query_dataset("test", "codebert", "untrained", "func_code")
     evaluate_nicad_results()
     # create evaluation graphs
     eval_graphs()

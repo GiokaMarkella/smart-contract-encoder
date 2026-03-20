@@ -83,7 +83,8 @@ def eval_graphs():
         'sentence_encoder_untrained_code': 'NHLD',
         'sentence_encoder_finetuned_code': 'NHLD Finetuned (LiftLM)',
         'ngram_untrained_opcode': 'Ngram Opcode',
-        'smartembed_untrained_func_code': 'SmartEmbed'
+        'smartembed_untrained_func_code': 'SmartEmbed',
+        'codebert_untrained_func_code': 'CodeBERT'
     }
 
     k_values = list(range(5, 110, 10))
@@ -104,7 +105,7 @@ def eval_graphs():
         markerkstyles = itertools.cycle(['o', 'v', "s", "<","*", ">"])
         plt.figure(figsize=(8, 5))
         plt.rcParams.update({'font.size': 10})
-        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed']
+        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT']
         for name in names:
             results = all_results[name]
             plt.plot(k_values, results[metric], marker=next(markerkstyles), linestyle=next(linestyles), label=name)

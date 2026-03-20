@@ -1,6 +1,7 @@
 from smart_contract_encoder.models.sentence_encoder import SentenceEncoder
 from smart_contract_encoder.models.ngram_model import NgramEncoder
 from smart_contract_encoder.models.smartembed_model import SmartEmbed
+from smart_contract_encoder.models.codebert_model import CodeBERTEncoder
 from smart_contract_encoder.load_data import *
 from smart_contract_encoder.utils import ENC_VALS, ENC_VERSION
 
@@ -12,6 +13,8 @@ def load_encoder(encoder, encoder_version, model_to_load=None):
         enc = NgramEncoder(load=load)
     elif encoder == "smartembed":
         enc = SmartEmbed()
+    elif encoder == "codebert":
+        enc = CodeBERTEncoder()
     return enc
 
 def _encode_field(field, df, enc):
