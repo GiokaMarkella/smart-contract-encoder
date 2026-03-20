@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from transformers import AutoTokenizer, AutoModel
 from smart_contract_encoder.models.base_model import BaseModel
+from smart_contract_encoder.models.sentence_encoder import CardData
 
 
 class CodeBERTEncoder(BaseModel):
@@ -13,6 +14,8 @@ class CodeBERTEncoder(BaseModel):
         self._device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._model.to(self._device)
         self._model.eval()
+        self.similarity_fn_name = 'cosine'
+        self.model_card_data = CardData()
 
     def _mean_pooling(self, model_output, attention_mask):
         token_embeddings = model_output.last_hidden_state
