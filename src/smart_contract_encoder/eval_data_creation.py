@@ -15,8 +15,11 @@ def create_query_dataset(split, encoder, encoder_version, field, model_to_load =
     baseline_enc = "sentence_encoder"
     baseline_enc_version = "untrained"
     baseline_field = "func_documentation"
-    baseline_embeddings = load_dataset(file_type="embeddings", split=split, encoder=baseline_enc, encoder_version=baseline_enc_version, field=baseline_field)
-    baseline_embeddings = np.stack(baseline_embeddings['embeddings'].to_list())
+    baseline_embeddings_full = load_dataset(file_type="embeddings", split=split, encoder=baseline_enc, encoder_version=baseline_enc_version, field=baseline_field)
+    baseline_embeddings_full = np.stack(baseline_embeddings_full['embeddings'].to_list())
+    df = df.drop_duplicates(subset=['func_code'])
+    baseline_embeddings = baseline_embeddings_full[df.index]
+    df = df.reset_index(drop=True)
     query_indices = df.sample(n=500, random_state=42).index.tolist()
     corpus_df = df.sample(n=7000, random_state=42)
     corpus_indices = corpus_df.index.tolist()
