@@ -48,6 +48,53 @@ def _select_query_indices(df: pd.DataFrame, n_queries: int, unique_by_func_name:
     return selected
 
 
+class _UnionFind:
+    def __init__(self):
+        self.parent = {}
+        self.rank = {}
+
+    def add(self, x):
+        if x not in self.parent:
+            self.parent[x] = x
+            self.rank[x] = 0
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, a, b):
+        self.add(a)
+        self.add(b)
+        ra = self.find(a)
+        rb = self.find(b)
+        if ra == rb:
+            return
+        if self.rank[ra] < self.rank[rb]:
+            self.parent[ra] = rb
+        elif self.rank[ra] > self.rank[rb]:
+            self.parent[rb] = ra
+        else:
+            self.parent[rb] = ra
+            self.rank[ra] += 1
+
+
+def _cluster_sizes(df: pd.DataFrame) -> dict[int, int]:
+    uf = _UnionFind()
+    for idx in df.index:
+        uf.add(idx)
+    for idx, clones in df["clones_list"].items():
+        for c in clones:
+            if c in df.index:
+                uf.union(idx, c)
+    root_to_size = {}
+    for idx in df.index:
+        root = uf.find(idx)
+        root_to_size[root] = root_to_size.get(root, 0) + 1
+    sizes = {idx: root_to_size[uf.find(idx)] for idx in df.index}
+    return sizes
+
+
 def create_clone_query_dataset(
     encoder: str,
     encoder_version: str,
@@ -57,6 +104,7 @@ def create_clone_query_dataset(
     n_queries: int = 100,
     unique_by_func_name: bool = True,
     dedupe_by_func_code: bool = True,
+    drop_singleton_docs: bool = True,
 ):
     df_raw = pd.read_csv(clones_csv)
     df_raw = df_raw.reset_index(drop=True)
@@ -87,6 +135,9 @@ def create_clone_query_dataset(
         raise ValueError("No queries could be selected from clones CSV")
 
     corpus_indices = [i for i in df.index if i not in set(query_indices)]
+    if drop_singleton_docs:
+        sizes = _cluster_sizes(df)
+        corpus_indices = [i for i in corpus_indices if sizes.get(i, 1) > 1]
 
     corpus = {f"d{idx}": df.loc[idx, field] for idx in corpus_indices}
     queries = {f"q{idx}": df.loc[idx, field] for idx in query_indices}
