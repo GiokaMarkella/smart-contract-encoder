@@ -3,6 +3,7 @@ from smart_contract_encoder.encoder import *
 from smart_contract_encoder.training_data_creation import *
 from smart_contract_encoder.models.sentence_encoder import *
 from smart_contract_encoder.eval_data_creation import *
+from smart_contract_encoder.clones_eval_data_creation import *
 from smart_contract_encoder.nicad_eval_data_creation import *
 from smart_contract_encoder.graphs import *
 import numpy as np
@@ -24,9 +25,19 @@ def main():
     create_query_dataset("test", "smartembed", "untrained", "func_code")
     create_query_dataset("test", "codebert", "untrained", "func_code")
     create_query_dataset("test", "coderankeembed", "untrained", "func_code")
+    create_clone_query_dataset("sentence_encoder", "untrained", "code")
+    create_clone_query_dataset("sentence_encoder", "untrained", "tac_code")
+    create_clone_query_dataset("sentence_encoder", "untrained", "func_code")
+    create_clone_query_dataset("sentence_encoder", "finetuned", "code", "all-mpnet-base-v2/code_translation_pairs_32_3000_50_50")
+    create_clone_query_dataset("sentence_encoder", "finetuned", "tac_code", "all-mpnet-base-v2/tac_code_translation_pairs_32_3000_50_50")
+    create_clone_query_dataset("ngram", "untrained", "opcode")
+    create_clone_query_dataset("smartembed", "untrained", "func_code")
+    create_clone_query_dataset("codebert", "untrained", "func_code")
+    create_clone_query_dataset("coderankeembed", "untrained", "func_code")
     evaluate_nicad_results()
     # create evaluation graphs
     eval_graphs()
+    clones_eval_graphs()
     dist_graphs()
 
 

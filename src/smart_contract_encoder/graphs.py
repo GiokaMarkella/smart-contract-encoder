@@ -121,5 +121,61 @@ def eval_graphs():
         plt.savefig(f"{metric}_at_k.png", dpi=300)
 
 
+def clones_eval_graphs():
+    results_dir = "./results"
+    metrics = [
+        'accuracy',
+        'precision',
+        'recall',
+        'map',
+        'mrr',
+        'ndcg'
+    ]
+    model_renaming = {
+        'sentence_encoder_untrained_func_code': 'Source (Baseline)',
+        'sentence_encoder_finetuned_tac_code': 'TAC Finetuned',
+        'sentence_encoder_untrained_tac_code': 'TAC',
+        'sentence_encoder_untrained_code': 'NHLD',
+        'sentence_encoder_finetuned_code': 'NHLD Finetuned (LiftLM)',
+        'ngram_untrained_opcode': 'Ngram Opcode',
+        'smartembed_untrained_func_code': 'SmartEmbed',
+        'codebert_untrained_func_code': 'CodeBERT',
+        'coderankeembed_untrained_func_code': 'CodeRankEmbed'
+    }
+
+    k_values = list(range(5, 110, 10))
+    all_results = {}
+
+    for json_file in glob.glob(os.path.join(results_dir, "*_clones_results.json")):
+        model_name = os.path.basename(json_file).replace("_clones_results.json", "")
+        model_name = model_renaming.get(model_name)
+        if model_name is None:
+            continue
+        with open(json_file, 'r') as file:
+            data = json.load(file)
+            data = data.get("results", data)
+            all_results[model_name] = {metric: [data[metric][str(k)] for k in k_values] for metric in metrics}
+
+    for metric in metrics:
+        linestyles = itertools.cycle(['-', '--', '-.', ':'])
+        markerkstyles = itertools.cycle(['o', 'v', "s", "<","*", ">"])
+        plt.figure(figsize=(8, 5))
+        plt.rcParams.update({'font.size': 10})
+        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT', 'CodeRankEmbed']
+        for name in names:
+            if name not in all_results:
+                continue
+            results = all_results[name]
+            plt.plot(k_values, results[metric], marker=next(markerkstyles), linestyle=next(linestyles), label=name)
+
+        plt.xlabel("k")
+        plt.ylabel(f"{metric.capitalize()}@k (Clones)")
+        plt.xticks(k_values, rotation=45)
+        plt.ylim(bottom=0)
+        plt.grid(True, linestyle='-', linewidth=0.5, alpha=0.7)
+        plt.legend()
+        plt.tight_layout()
+        plt.savefig(f"{metric}_at_k_clones.png", dpi=300)
+
 
 
