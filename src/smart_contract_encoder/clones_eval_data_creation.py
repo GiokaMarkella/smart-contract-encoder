@@ -103,7 +103,7 @@ def create_clone_query_dataset(
     clones_csv: str | os.PathLike = DEFAULT_CLONES_CSV,
     n_queries: int = 100,
     unique_by_func_name: bool = True,
-    dedupe_by_func_code: bool = True,
+    dedupe_by_func_code: bool = False,
     drop_singleton_docs: bool = True,
 ):
     df_raw = pd.read_csv(clones_csv)
@@ -160,7 +160,7 @@ def create_clone_query_dataset(
         if not queries:
             raise ValueError("All queries were dropped because no relevant clone docs were in the corpus")
 
-    k_values = list(range(5, 110, 10)) + [1, 10, 20]
+    k_values = list(range(1, 11))
     ir_evaluator = InformationRetrievalEvaluator(
         queries=queries,
         corpus=corpus,
