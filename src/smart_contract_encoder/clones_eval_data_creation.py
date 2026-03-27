@@ -56,11 +56,31 @@ def create_clone_query_dataset(
     clones_csv: str | os.PathLike = DEFAULT_CLONES_CSV,
     n_queries: int = 100,
     unique_by_func_name: bool = True,
+    dedupe_by_func_code: bool = True,
 ):
-    df = pd.read_csv(clones_csv)
-    df = df.reset_index(drop=True)
-    df["clones_list"] = df["clones"].apply(_parse_clone_list)
-    df["clone_count"] = df["clones_list"].apply(len)
+    df_raw = pd.read_csv(clones_csv)
+    df_raw = df_raw.reset_index(drop=True)
+    df_raw["clones_list"] = df_raw["clones"].apply(_parse_clone_list)
+
+    if dedupe_by_func_code:
+        df_raw["orig_idx"] = df_raw.index
+        rep_df = df_raw.drop_duplicates(subset=["func_code"], keep="first").copy()
+        rep_df = rep_df.reset_index(drop=True)
+        func_code_to_rep = {row["func_code"]: row["orig_idx"] for _, row in rep_df.iterrows()}
+        old_idx_to_rep = {}
+        for old_idx, row in df_raw.iterrows():
+            old_idx_to_rep[old_idx] = func_code_to_rep.get(row["func_code"], old_idx)
+        df = df_raw[df_raw["orig_idx"].isin(set(func_code_to_rep.values()))].copy()
+        df = df.set_index("orig_idx").sort_index()
+        df = df.reset_index()
+        df["clones_list"] = df["clones_list"].apply(
+            lambda lst: [old_idx_to_rep.get(i, i) for i in lst]
+        )
+    else:
+        df = df_raw.copy()
+        df["orig_idx"] = df.index
+
+    df["clone_count"] = df["clones_list"].apply(lambda lst: len(set(lst)))
 
     query_indices = _select_query_indices(df, n_queries=n_queries, unique_by_func_name=unique_by_func_name)
     if not query_indices:
