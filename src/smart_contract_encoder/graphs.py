@@ -88,7 +88,7 @@ def eval_graphs():
         'coderankeembed_untrained_func_code': 'CodeRankEmbed'
     }
 
-    k_values = list(range(5, 110, 10))
+    k_values = list(range(1, 11))
 
     all_results = {}
 
@@ -176,6 +176,5 @@ def clones_eval_graphs():
         plt.legend()
         plt.tight_layout()
         plt.savefig(f"{metric}_at_k_clones.png", dpi=300)
-
 
 
