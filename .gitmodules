@@ -4,3 +4,6 @@
 [submodule "solidity-nicad"]
 	path = solidity-nicad
 	url = git@github.com:anon-sub-conf/solidity-nicad.git
+[submodule "SmartDetecter"]
+	path = SmartDetecter
+	url = git@github.com:anon-sub-conf/SmartDetecter.git
