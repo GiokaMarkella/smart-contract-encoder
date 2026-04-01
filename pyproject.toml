@@ -29,4 +29,4 @@ from = "src"
 setup = "smart_contract_encoder.setup:main"
 train = "smart_contract_encoder.train:main"
 eval = "smart_contract_encoder.eval:main"
-
+fc-pairs-experiment = "smart_contract_encoder.fc_pairs_experiment:main"
