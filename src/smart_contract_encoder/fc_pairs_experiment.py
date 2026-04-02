@@ -184,9 +184,22 @@ def load_fc_pair_labels(fc_pair_root: Path) -> pd.DataFrame:
         part = df[[col1, col2, label_col]].copy()
         part.columns = ["function_id_1", "function_id_2", "clone_label"]
         part["split"] = split
+        part = part.dropna(how="all", subset=["function_id_1", "function_id_2", "clone_label"]).reset_index(drop=True)
         part["function_id_1"] = part["function_id_1"].astype(str)
         part["function_id_2"] = part["function_id_2"].astype(str)
-        part["clone_label"] = part["clone_label"].astype(int)
+        numeric_labels = pd.to_numeric(part["clone_label"], errors="coerce")
+        invalid_mask = numeric_labels.isna()
+        if invalid_mask.any():
+            invalid_rows = (
+                part.loc[invalid_mask, ["function_id_1", "function_id_2", "clone_label"]]
+                .head(5)
+                .to_dict(orient="records")
+            )
+            raise ValueError(
+                f"{csv_path} contains non-numeric or missing clone labels; "
+                f"examples: {invalid_rows}"
+            )
+        part["clone_label"] = numeric_labels.astype(int)
         rows.append(part)
     if not rows:
         raise ValueError(f"No train.csv/test.csv found under {fc_pair_root}")
