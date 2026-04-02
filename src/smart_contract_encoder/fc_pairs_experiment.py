@@ -83,7 +83,8 @@ def normalize_solidity_function(text: str) -> str:
         text = _extract_first_function(text)
     else:
         text = text.strip()
-    return _collapse_whitespace(text)
+    text = _collapse_whitespace(text)
+    return text
 
 
 def _run_7z_extract(archive_path: Path, output_dir: Path) -> Path:
@@ -217,6 +218,53 @@ def load_merged_dataset(merged_path: Path | None = None) -> pd.DataFrame:
     df["merged_row_id"] = df.index
     df["normalized_func_code"] = df["func_code"].fillna("").map(normalize_solidity_function)
     return df
+
+
+def deduplicate_fc_pair_labels(labels_df: pd.DataFrame, fc_functions: pd.DataFrame) -> tuple[pd.DataFrame, dict[str, int]]:
+    lookup = fc_functions[["function_id", "normalized_source"]]
+    left = lookup.rename(
+        columns={
+            "function_id": "function_id_1",
+            "normalized_source": "normalized_source_1",
+        }
+    )
+    right = lookup.rename(
+        columns={
+            "function_id": "function_id_2",
+            "normalized_source": "normalized_source_2",
+        }
+    )
+
+    labeled_pairs = labels_df.merge(left, how="left", on="function_id_1")
+    labeled_pairs = labeled_pairs.merge(right, how="left", on="function_id_2")
+
+    missing_mask = labeled_pairs["normalized_source_1"].isna() | labeled_pairs["normalized_source_2"].isna()
+    if missing_mask.any():
+        missing_rows = (
+            labeled_pairs.loc[missing_mask, ["function_id_1", "function_id_2", "split"]]
+            .head(5)
+            .to_dict(orient="records")
+        )
+        raise ValueError(
+            "Could not resolve normalized source for some FC-pair labels; "
+            f"examples: {missing_rows}"
+        )
+
+    before = len(labeled_pairs)
+    labeled_pairs["_normalized_pair_key"] = labeled_pairs.apply(
+        lambda row: tuple(sorted((row["normalized_source_1"], row["normalized_source_2"]))),
+        axis=1,
+    )
+    deduped = labeled_pairs.drop_duplicates(subset=["_normalized_pair_key"], keep="first").copy()
+    deduped = deduped.drop(columns=["normalized_source_1", "normalized_source_2", "_normalized_pair_key"]).reset_index(drop=True)
+    after = len(deduped)
+
+    stats = {
+        "labels_before_dedup": before,
+        "labels_after_dedup": after,
+        "duplicate_labels_removed": before - after,
+    }
+    return deduped, stats
 
 
 def build_match_table(fc_functions: pd.DataFrame, merged_df: pd.DataFrame) -> pd.DataFrame:
@@ -364,13 +412,16 @@ def print_summary(
     labels_df: pd.DataFrame,
     matched_functions: pd.DataFrame,
     pairs_df: pd.DataFrame,
+    dedup_stats: dict[str, int],
     metrics_df: pd.DataFrame | None,
 ) -> None:
     total_functions = len(fc_functions)
     matched_count = int(matched_functions["match_found"].sum())
     print(f"FC-pair functions parsed: {total_functions}")
     print(f"FC-pair functions matched to test_merged.pkl: {matched_count}")
-    print(f"FC-pair labeled pairs: {len(labels_df)}")
+    print(f"FC-pair labeled pairs before deduplication: {dedup_stats['labels_before_dedup']}")
+    print(f"FC-pair labeled pairs after deduplication: {dedup_stats['labels_after_dedup']}")
+    print(f"Duplicate normalized-code pairs removed: {dedup_stats['duplicate_labels_removed']}")
     print(f"Pairs with both functions matched: {len(pairs_df)}")
     if metrics_df is not None and not metrics_df.empty:
         print("\nThreshold sweep:")
@@ -381,6 +432,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
     fc_pair_root = resolve_fc_pair_root(args.fc_pair_input, args.extracted_dir)
     fc_functions = extract_fc_pair_functions(fc_pair_root)
     labels_df = load_fc_pair_labels(fc_pair_root)
+    labels_df, dedup_stats = deduplicate_fc_pair_labels(labels_df, fc_functions)
     merged_df = load_merged_dataset(args.merged_path)
     matched_functions = build_match_table(fc_functions, merged_df)
     pairs_df = build_decompiled_pairs_dataset(labels_df, matched_functions)
@@ -405,7 +457,7 @@ def run_pipeline(args: argparse.Namespace) -> None:
         with open(args.output_dir / "fc_pair_threshold_metrics.json", "w", encoding="utf-8") as handle:
             json.dump(metrics_df.to_dict(orient="records"), handle, indent=2)
 
-    print_summary(fc_functions, labels_df, matched_functions, pairs_df, metrics_df)
+    print_summary(fc_functions, labels_df, matched_functions, pairs_df, dedup_stats, metrics_df)
 
 
 def build_parser() -> argparse.ArgumentParser:
