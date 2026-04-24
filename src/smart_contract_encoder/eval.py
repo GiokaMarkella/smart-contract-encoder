@@ -11,6 +11,7 @@ from sentence_transformers import util
 import json
 
 def main():
+    coderankeembed_model = "coderankembed/code_translation_pairs_32_3000_50_50"
     # evaluate all different models
     baseline_enc = "sentence_encoder"
     baseline_enc_version = "untrained"
@@ -25,6 +26,7 @@ def main():
     create_query_dataset("test", "smartembed", "untrained", "func_code")
     create_query_dataset("test", "codebert", "untrained", "func_code")
     create_query_dataset("test", "coderankeembed", "untrained", "func_code")
+    create_query_dataset("test", "coderankeembed", "finetuned", "code", coderankeembed_model)
     create_clone_query_dataset("sentence_encoder", "untrained", "code")
     create_clone_query_dataset("sentence_encoder", "untrained", "tac_code")
     create_clone_query_dataset("sentence_encoder", "untrained", "func_code")
@@ -34,6 +36,7 @@ def main():
     create_clone_query_dataset("smartembed", "untrained", "func_code")
     create_clone_query_dataset("codebert", "untrained", "func_code")
     create_clone_query_dataset("coderankeembed", "untrained", "func_code")
+    create_clone_query_dataset("coderankeembed", "finetuned", "code", coderankeembed_model)
     evaluate_nicad_results()
     # create evaluation graphs
     eval_graphs()

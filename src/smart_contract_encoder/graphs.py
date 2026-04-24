@@ -85,7 +85,8 @@ def eval_graphs():
         'ngram_untrained_opcode': 'Ngram Opcode',
         'smartembed_untrained_func_code': 'SmartEmbed',
         'codebert_untrained_func_code': 'CodeBERT',
-        'coderankeembed_untrained_func_code': 'CodeRankEmbed'
+        'coderankeembed_untrained_func_code': 'CodeRankEmbed',
+        'coderankeembed_finetuned_code': 'CodeRankEmbed Finetuned'
     }
 
     k_values = list(range(1, 11))
@@ -106,8 +107,10 @@ def eval_graphs():
         markerkstyles = itertools.cycle(['o', 'v', "s", "<","*", ">"])
         plt.figure(figsize=(8, 5))
         plt.rcParams.update({'font.size': 10})
-        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT', 'CodeRankEmbed']
+        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT', 'CodeRankEmbed', 'CodeRankEmbed Finetuned']
         for name in names:
+            if name not in all_results:
+                continue
             results = all_results[name]
             plt.plot(k_values, results[metric], marker=next(markerkstyles), linestyle=next(linestyles), label=name)
 
@@ -140,7 +143,8 @@ def clones_eval_graphs():
         'ngram_untrained_opcode': 'Ngram Opcode',
         'smartembed_untrained_func_code': 'SmartEmbed',
         'codebert_untrained_func_code': 'CodeBERT',
-        'coderankeembed_untrained_func_code': 'CodeRankEmbed'
+        'coderankeembed_untrained_func_code': 'CodeRankEmbed',
+        'coderankeembed_finetuned_code': 'CodeRankEmbed Finetuned'
     }
 
     k_values = list(range(5, 110, 10))
@@ -161,7 +165,7 @@ def clones_eval_graphs():
         markerkstyles = itertools.cycle(['o', 'v', "s", "<","*", ">"])
         plt.figure(figsize=(8, 5))
         plt.rcParams.update({'font.size': 10})
-        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT', 'CodeRankEmbed']
+        names = ['Source (Baseline)', 'NHLD Finetuned (LiftLM)', 'NHLD', 'Ngram Opcode', 'TAC Finetuned', 'TAC', 'SmartEmbed', 'CodeBERT', 'CodeRankEmbed', 'CodeRankEmbed Finetuned']
         for name in names:
             if name not in all_results:
                 continue
@@ -176,5 +180,4 @@ def clones_eval_graphs():
         plt.legend()
         plt.tight_layout()
         plt.savefig(f"{metric}_at_k_clones.png", dpi=300)
-
 

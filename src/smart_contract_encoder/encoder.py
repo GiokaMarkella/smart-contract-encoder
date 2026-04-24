@@ -17,7 +17,9 @@ def load_encoder(encoder, encoder_version, model_to_load=None):
     elif encoder == "codebert":
         enc = CodeBERTEncoder()
     elif encoder == "coderankeembed":
-        enc = CodeRankEmbedEncoder()
+        enc = CodeRankEmbedEncoder(load=load, model_to_load=model_to_load)
+    else:
+        raise ValueError(f"Unsupported encoder: {encoder}")
     return enc
 
 def _encode_field(field, df, enc):
@@ -30,9 +32,9 @@ def _encode_field(field, df, enc):
     df = df[['embeddings']]
     return df
 
-def create_embeddings(split, encoder, encoder_version, field):
+def create_embeddings(split, encoder, encoder_version, field, model_to_load=None):
     df = load_dataset(file_type="merged", split=split)
-    enc = load_encoder(encoder, encoder_version)
+    enc = load_encoder(encoder, encoder_version, model_to_load=model_to_load)
     print(f"Creating embeddings for the {split} split, using the {encoder_version} {encoder} encoder, on the {field} field")
     df_emb = _encode_field(field, df, enc)
     print(df_emb)
