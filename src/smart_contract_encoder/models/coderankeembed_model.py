@@ -18,7 +18,8 @@ class CodeRankEmbedEncoder(BaseModel):
         model_to_load: str = None,
         input_level: str = None,
         input_type: str = None,
-        batch_size: int = 32,
+        batch_size: int = 2,
+        max_seq_length: int = 1024,
         save_steps: int = 3000,
         eval_steps: int = 50,
         logging_steps: int = 50,
@@ -26,6 +27,7 @@ class CodeRankEmbedEncoder(BaseModel):
         self.input_level = input_level
         self.input_type = input_type
         self.batch_size = batch_size
+        self.max_seq_length = max_seq_length
         self.save_steps = save_steps
         self.eval_steps = eval_steps
         self.logging_steps = logging_steps
@@ -47,6 +49,7 @@ class CodeRankEmbedEncoder(BaseModel):
 
         model_name = model_to_load if load else "nomic-ai/CodeRankEmbed"
         self._model = SentenceTransformer(model_name, device="cuda", trust_remote_code=True)
+        self._model.max_seq_length = self.max_seq_length
 
     def encode(self, dataset: pd.DataFrame, **kwargs):
         if isinstance(dataset, pd.Series):

@@ -15,6 +15,8 @@ def main():
         load=False,
         input_level=field,
         input_type=training_dataset_type,
+        batch_size=2,
+        max_seq_length=1024,
     )
     encoder.finetune_pairs(eval_dataset, train_dataset)
 
