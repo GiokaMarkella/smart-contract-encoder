@@ -106,3 +106,63 @@ def create_query_dataset(split, encoder, encoder_version, field, model_to_load =
     with open(output_file, 'w') as file:
         json.dump(results, file, indent=4)
     print(f"Results saved successfully to {output_file}")
+
+
+def create_docstring_query_dataset(split, encoder, encoder_version, field, model_to_load=None):
+    df = load_dataset(file_type="merged", split=split)
+    df = df.dropna(subset=["func_documentation", field])
+    df = df.drop_duplicates(subset=["func_code"])
+    df = df.reset_index(drop=True)
+
+    print(
+        "Evaluating docstring-to-function retrieval:\n"
+        f"ENCODER: {encoder}_{encoder_version}\n"
+        f"QUERY FIELD: func_documentation\n"
+        f"CORPUS FIELD: {field}\n"
+    )
+
+    queries = {}
+    corpus = {}
+    relevant_docs = {}
+
+    for idx, row in df.iterrows():
+        query_id = f"q{idx}"
+        doc_id = f"d{idx}"
+        queries[query_id] = row["func_documentation"]
+        corpus[doc_id] = row[field]
+        relevant_docs[query_id] = {doc_id}
+
+    k_values = [1, 5, 10]
+    ir_evaluator = InformationRetrievalEvaluator(
+        queries=queries,
+        corpus=corpus,
+        relevant_docs=relevant_docs,
+        show_progress_bar=True,
+        mrr_at_k=k_values,
+        ndcg_at_k=k_values,
+        precision_recall_at_k=k_values,
+        corpus_chunk_size=len(df),
+    )
+
+    model_field = load_encoder(encoder, encoder_version, model_to_load)
+    if encoder == "smartembed":
+        model_field.dataset = df
+    eval_result = ir_evaluator(model_field.model)
+
+    results = {
+        "mrr": {},
+        "recall": {},
+        "ndcg": {},
+    }
+    for k in k_values:
+        k_str = str(k)
+        results["mrr"][k_str] = eval_result[f"cosine_mrr@{k}"]
+        results["recall"][k_str] = eval_result[f"cosine_recall@{k}"]
+        results["ndcg"][k_str] = eval_result[f"cosine_ndcg@{k}"]
+
+    output_dir = "./results"
+    os.makedirs(output_dir, exist_ok=True)
+    output_file = os.path.join(output_dir, f"{encoder}_{encoder_version}_{field}_docstring_results.json")
+    with open(output_file, "w") as file:
+        json.dump(results, file, indent=4)
+    print(f"Results saved successfully to {output_file}")

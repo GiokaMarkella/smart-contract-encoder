@@ -27,6 +27,11 @@ def main():
     create_query_dataset("test", "codebert", "untrained", "func_code")
     create_query_dataset("test", "coderankeembed", "untrained", "func_code")
     create_query_dataset("test", "coderankeembed", "finetuned", "code", coderankeembed_model)
+    create_docstring_query_dataset("test", "sentence_encoder", "untrained", "func_code")
+    create_docstring_query_dataset("test", "sentence_encoder", "finetuned", "code", "all-mpnet-base-v2/code_translation_pairs_32_3000_50_50")
+    create_docstring_query_dataset("test", "codebert", "untrained", "func_code")
+    create_docstring_query_dataset("test", "coderankeembed", "untrained", "func_code")
+    create_docstring_query_dataset("test", "coderankeembed", "finetuned", "code", coderankeembed_model)
     create_clone_query_dataset("sentence_encoder", "untrained", "code")
     create_clone_query_dataset("sentence_encoder", "untrained", "tac_code")
     create_clone_query_dataset("sentence_encoder", "untrained", "func_code")
@@ -41,6 +46,7 @@ def main():
     # create evaluation graphs
     eval_graphs()
     clones_eval_graphs()
+    docstring_eval_graphs()
     dist_graphs()
 
 
